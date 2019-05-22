@@ -1,8 +1,11 @@
 package com.imooc.seckill.conf;
 
+import com.alibaba.fastjson.JSON;
 import com.imooc.seckill.domain.MiaoshaUser;
 import com.imooc.seckill.service.MiaoShaUserService;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Service;
@@ -22,6 +25,8 @@ import javax.servlet.http.HttpServletResponse;
 @Service("userArgumentResolver")
 public class UserArgumentResolver implements HandlerMethodArgumentResolver {
 
+    Logger logger= LoggerFactory.getLogger(UserArgumentResolver.class);
+
     @Autowired
     private MiaoShaUserService miaoShaUserService;
 
@@ -38,6 +43,8 @@ public class UserArgumentResolver implements HandlerMethodArgumentResolver {
         HttpServletRequest request = nativeWebRequest.getNativeRequest(HttpServletRequest.class);
         HttpServletResponse response = nativeWebRequest.getNativeResponse(HttpServletResponse.class);
 
+        logger.info("http request url :{}",request.getRequestURI());
+        logger.info("http request parameter :{}", JSON.toJSONString(request.getParameterMap()));
         String parameterToken = request.getParameter(MiaoShaUserService.COOKIE_NAME_TOKEN);
         String cookieToken = getCookieValue(request, MiaoShaUserService.COOKIE_NAME_TOKEN);
 
@@ -52,8 +59,12 @@ public class UserArgumentResolver implements HandlerMethodArgumentResolver {
 
     private String getCookieValue(HttpServletRequest request, String cookieNameToken) {
         Cookie[] cookies = request.getCookies();
+        if(cookies==null||cookies.length<=0){
+            return null;
+        }
         for (Cookie cookie : cookies) {
             if (cookieNameToken.equals(cookie.getName())) {
+                logger.info("http request token     :   [{}]", cookie.getValue());
                 return cookie.getValue();
             }
         }
